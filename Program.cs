@@ -1,5 +1,7 @@
 
 using KanbanBackend.Entities;
+using Microsoft.AspNetCore.Hosting;
+using System.Text.Json.Serialization;
 
 namespace KanbanBackend
 {
@@ -13,9 +15,14 @@ namespace KanbanBackend
 
             builder.Services.AddControllers();
             builder.Services.AddDbContext<KanbanDbContext>();
+            builder.Services.AddAutoMapper(typeof(Program).Assembly);
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+
+            //builder.Services.AddControllers().AddJsonOptions(x =>
+            //    x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
             var app = builder.Build();
 
