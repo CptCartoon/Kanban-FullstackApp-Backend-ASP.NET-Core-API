@@ -3,6 +3,7 @@ using KanbanBackend.Entities;
 using KanbanBackend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Task = KanbanBackend.Entities.Task;
 
 namespace KanbanBackend.Controllers
 {
@@ -67,6 +68,58 @@ namespace KanbanBackend.Controllers
             }
 
             return Ok(boardDto);
+        }
+
+        [HttpPost]
+        [Route("AddBoard")]
+        public ActionResult AddBoard([FromBody]AddBoardDto dto)
+        {
+            var board = _mapper.Map<Board>(dto);
+            _dbContext.Boards.Add(board);
+            _dbContext.SaveChanges();
+
+            return Created($"api/kanban/GetBoardById/{board.Id}", null);
+        }
+
+        [HttpPost]
+        [Route("AddColumn/{boardId}")]
+        public ActionResult AddBoard([FromBody] AddColumnDto dto, [FromRoute] int boardId)
+        {
+
+            var column = _mapper.Map<Column>(dto);
+
+            column.BoardId = boardId;
+
+            _dbContext.Columns.Add(column);
+            _dbContext.SaveChanges();
+
+            return Created($"api/kanban/GetBoardById/{column.BoardId}", null);
+        }
+
+        [HttpPost]
+        [Route("AddTask/{columnId}")]
+        public ActionResult AddBoard([FromBody] AddTaskDto dto, [FromRoute] int columnId)
+        {
+
+            var task = _mapper.Map<Task>(dto);
+
+            task.ColumnId = columnId;
+
+            _dbContext.Tasks.Add(task);
+            _dbContext.SaveChanges();
+
+            if (dto.Subtasks != null && dto.Subtasks.Any())
+            {
+                foreach (var subtaskDto in dto.Subtasks)
+                {
+                    var subtask = _mapper.Map<Subtask>(subtaskDto);
+                    subtask.TaskId = task.Id;
+                    _dbContext.Subtasks.Add(subtask);
+                }
+                _dbContext.SaveChanges();
+            }
+            
+            return Created($"Added", null);
         }
     }
 }

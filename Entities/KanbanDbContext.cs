@@ -12,29 +12,60 @@ namespace KanbanBackend.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Board>()
-                .Property(p => p.Name)
-                .IsRequired()
-                .HasMaxLength(50);
+            modelBuilder.Entity<Board>(entity =>
+            {
+                entity.Property(p => p.Name)
+                      .IsRequired()
+                      .HasMaxLength(50);
 
-            modelBuilder.Entity<Column>()
-                .Property(c => c.Name)
-                .IsRequired()
-                .HasMaxLength(50);
+                entity.HasMany(b => b.Columns)
+                      .WithOne(b => b.Board)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+                
 
-            modelBuilder.Entity<Task>()
-                .Property(t => t.Title)
+            modelBuilder.Entity<Column>(entity =>
+            {
+                entity.Property(c => c.Name)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.HasMany(c => c.Tasks)
+                      .WithOne(c => c.Column)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+                
+
+            modelBuilder.Entity<Task>(entity =>
+            {
+                entity.Property(t => t.Title)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(t => t.Description)
+                      .HasMaxLength(2000);
+
+                entity.HasMany(t => t.Subtasks)
+                      .WithOne(s => s.Task)
+                      .HasForeignKey(s => s.TaskId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Subtask>(entity =>
+            {
+                entity.Property(s => s.Title)
                 .IsRequired()
                 .HasMaxLength(100);
 
-            modelBuilder.Entity<Task>()
-                .Property(t => t.Description)
-                .HasMaxLength(2000);
+                entity.HasOne(s => s.Task)
+                      .WithMany(t => t.Subtasks)
+                      .HasForeignKey(s => s.TaskId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+                
 
-            modelBuilder.Entity<Subtask>()
-                .Property(s => s.Title)
-                .IsRequired()
-                .HasMaxLength(100);
+
+                
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
