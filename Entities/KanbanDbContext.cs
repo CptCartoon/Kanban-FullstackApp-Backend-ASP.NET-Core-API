@@ -61,16 +61,14 @@ namespace KanbanBackend.Entities
                       .WithMany(t => t.Subtasks)
                       .HasForeignKey(s => s.TaskId)
                       .OnDelete(DeleteBehavior.Cascade);
-            });
-                
-
-
-                
+            });          
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(_connectionString);
+            optionsBuilder.LogTo(Console.WriteLine, new[] { DbLoggerCategory.Database.Command.Name });
+
         }
     }
 }

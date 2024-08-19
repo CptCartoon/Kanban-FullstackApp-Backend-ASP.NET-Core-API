@@ -17,7 +17,8 @@ namespace KanbanBackend
             CreateMap<AddBoardDto, Board>();
             CreateMap<AddColumnDto, Column>();
 
-            CreateMap<AddTaskDto, Task>(); 
+            CreateMap<AddTaskDto, Task>()
+                    .ForMember(dest => dest.Subtasks, opt => opt.Ignore());
             CreateMap<AddSubtaskDto, Subtask>();
         }
     }
