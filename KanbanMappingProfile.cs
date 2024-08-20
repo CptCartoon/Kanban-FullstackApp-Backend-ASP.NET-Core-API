@@ -19,6 +19,8 @@ namespace KanbanBackend
 
             CreateMap<AddTaskDto, Task>()
                     .ForMember(dest => dest.Subtasks, opt => opt.Ignore());
+            CreateMap<UpdateTaskDto, Task>()
+                    .ForMember(dest => dest.Subtasks, opt => opt.Ignore());
             CreateMap<AddSubtaskDto, Subtask>();
         }
     }

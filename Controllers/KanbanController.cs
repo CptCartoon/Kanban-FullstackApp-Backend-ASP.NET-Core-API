@@ -12,7 +12,7 @@ namespace KanbanBackend.Controllers
     public class KanbanController : ControllerBase
     {
         private readonly KanbanDbContext _dbContext;
-        private readonly IMapper _mapper;   
+        private readonly IMapper _mapper;
         public KanbanController(KanbanDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
@@ -44,7 +44,7 @@ namespace KanbanBackend.Controllers
                         .ThenInclude(t => t.Subtasks)
                 .ToList();
 
-            var boardsDto = _mapper.Map<List<BoardDto>>(boards); 
+            var boardsDto = _mapper.Map<List<BoardDto>>(boards);
 
             return Ok(boardsDto);
         }
@@ -60,9 +60,9 @@ namespace KanbanBackend.Controllers
                         .ThenInclude(t => t.Subtasks)
                 .FirstOrDefault(b => b.Id == id);
 
-            var boardDto = _mapper.Map<BoardDto>(board);   
+            var boardDto = _mapper.Map<BoardDto>(board);
 
-            if(board == null)
+            if (board == null)
             {
                 return NotFound();
             }
@@ -72,7 +72,7 @@ namespace KanbanBackend.Controllers
 
         [HttpPost]
         [Route("AddBoard")]
-        public ActionResult AddBoard([FromBody]AddBoardDto dto)
+        public ActionResult AddBoard([FromBody] AddBoardDto dto)
         {
             var board = _mapper.Map<Board>(dto);
             _dbContext.Boards.Add(board);
@@ -118,8 +118,151 @@ namespace KanbanBackend.Controllers
                 }
                 _dbContext.SaveChanges();
             }
-            
+
             return Created($"Added", null);
+        }
+
+
+        [HttpPut]
+        [Route("EditBoard/{id}")]
+        public ActionResult EditTask([FromRoute] int id, [FromBody] BoardDto dto)
+        {
+            var board = _dbContext
+                .Boards
+                .Include(b => b.Columns)
+                .FirstOrDefault(b => b.Id == id);
+
+            if (board == null) return NotFound();
+
+            board.Name = dto.Name;
+
+            var updatedColumns = dto.Columns
+                    .Select(c => c.Id)
+                    .ToList();
+
+            var columnsToRemove = board.Columns
+                    .Where(c => !updatedColumns.Contains(c.Id))
+                    .ToList();
+
+            foreach (var column in columnsToRemove)
+            {
+                _dbContext.Columns.Remove(column);
+            }
+
+            foreach (var columnDto in dto.Columns)
+            {
+                var existingColumn = board.Columns
+                    .FirstOrDefault(c => c.Id == columnDto.Id);
+
+                if (existingColumn != null)
+                {
+                    existingColumn.Name = columnDto.Name;
+                }
+                else
+                {
+                    var newColumn = new Column
+                    {
+                        Name = columnDto.Name,
+                        BoardId = board.Id
+                    };
+                    board.Columns.Add(newColumn);
+                }
+            }
+
+
+            _dbContext.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpPut]
+        [Route("EditTask/{id}")]
+        public ActionResult EditTask([FromRoute] int id, [FromBody] UpdateTaskDto dto)
+        {
+            var task = _dbContext
+                .Tasks
+                .Include(t => t.Subtasks)
+                .FirstOrDefault(t => t.Id == id);
+
+            if (task == null) return NotFound();
+
+            task.Title = dto.Title;
+            task.Description = dto.Description;
+            task.ColumnId = dto.ColumnId;
+
+            var updatedSubtasks = dto.Subtasks
+                    .Select(s => s.Id)
+                    .ToList();
+
+            var subtasksToRemove = task.Subtasks
+                    .Where(s => !updatedSubtasks.Contains(s.Id))
+                    .ToList();
+
+            foreach (var subtask in subtasksToRemove)
+            {
+                _dbContext.Subtasks.Remove(subtask);
+            }
+
+            foreach (var subtaskDto in dto.Subtasks)
+            {
+                var existingSubtask = task.Subtasks
+                    .FirstOrDefault(s => s.Id == subtaskDto.Id);
+
+                if (existingSubtask != null)
+                {
+                    existingSubtask.Title = subtaskDto.Title;
+                    existingSubtask.Completed = subtaskDto.Completed;
+                }
+                else
+                {
+                    var newSubtask = new Subtask
+                    {
+                        Title = subtaskDto.Title,
+                        Completed = subtaskDto.Completed,
+                        TaskId = task.Id 
+                    };
+                    task.Subtasks.Add(newSubtask);
+                }
+            }
+
+
+            _dbContext.SaveChanges();
+
+            return Ok();
+         }
+
+        [HttpDelete]
+        [Route("DeleteBoard/{id}")]
+        public ActionResult DeleteBoard([FromRoute] int id)
+        {
+            var board = _dbContext
+                .Boards
+                .FirstOrDefault(b => b.Id == id);
+
+            if (board == null) return NotFound();
+
+            _dbContext.Boards.Remove(board);
+            _dbContext.SaveChanges();
+
+            return NoContent();
+        }
+
+
+
+        [HttpDelete]
+        [Route("DeleteTask/{id}")]
+        public ActionResult DeleteTask([FromRoute] int id)
+        {
+            var task = _dbContext
+                .Tasks
+                .FirstOrDefault(t => t.Id == id);
+
+            if (task == null) return NotFound();
+
+            _dbContext.Tasks.Remove(task);
+            _dbContext.SaveChanges();
+
+            return NoContent();
         }
     }
 }
