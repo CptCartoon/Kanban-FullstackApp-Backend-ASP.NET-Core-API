@@ -21,7 +21,7 @@ namespace KanbanBackend.Controllers
         }
 
         [HttpGet]
-        [Route("GetBoardNames")]
+        [Route("GetBoardsNames")]
         public ActionResult<IEnumerable<SimpleBoardDto>> GetBoardsNames()
         {
             var boards = _dbContext
