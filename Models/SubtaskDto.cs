@@ -7,6 +7,7 @@ namespace KanbanBackend.Models
     public class SubtaskDto
     {
         public int Id { get; set; }
+        public int taskId { get; set; }
         public string Title { get; set; }
         public Boolean Completed { get; set; } = false;
 

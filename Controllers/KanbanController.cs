@@ -3,6 +3,7 @@ using KanbanBackend.Entities;
 using KanbanBackend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 using Task = KanbanBackend.Entities.Task;
 
 namespace KanbanBackend.Controllers
@@ -68,6 +69,27 @@ namespace KanbanBackend.Controllers
             }
 
             return Ok(boardDto);
+        }
+
+        [HttpGet]
+        [Route("GetTaskViewById/{id}")]
+        public ActionResult<IEnumerable<TaskViewDto>> GetTaskViewById([FromRoute] int id)
+        {
+            var taskView = _dbContext.Tasks
+                     .Include(t => t.Subtasks)
+                     .Include(t => t.Column)
+                     .ThenInclude(c => c.Board)
+                            .ThenInclude(b => b.Columns)
+                     .FirstOrDefault(t => t.Id == id);
+
+            var taskViewDto = _mapper.Map<TaskViewDto>(taskView);
+
+            if (taskView == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(taskViewDto);
         }
 
         [HttpPost]
