@@ -97,15 +97,27 @@ namespace KanbanBackend.Controllers
         public ActionResult AddBoard([FromBody] AddBoardDto dto)
         {
             var board = _mapper.Map<Board>(dto);
+
             _dbContext.Boards.Add(board);
             _dbContext.SaveChanges();
+
+            if(dto.Columns != null && dto.Columns.Any() ) {
+
+                foreach(var columnDto in dto.Columns)
+                {
+                    var column = _mapper.Map<Column>(columnDto);
+                    column.BoardId = board.Id;
+                    _dbContext.Columns.Add(column);
+                }
+                _dbContext.SaveChanges();
+            }
 
             return Created($"api/kanban/GetBoardById/{board.Id}", null);
         }
 
         [HttpPost]
         [Route("AddColumn/{boardId}")]
-        public ActionResult AddBoard([FromBody] AddColumnDto dto, [FromRoute] int boardId)
+        public ActionResult AddColumn([FromBody] AddColumnDto dto, [FromRoute] int boardId)
         {
 
             var column = _mapper.Map<Column>(dto);
@@ -114,6 +126,7 @@ namespace KanbanBackend.Controllers
 
             _dbContext.Columns.Add(column);
             _dbContext.SaveChanges();
+
 
             return Created($"api/kanban/GetBoardById/{column.BoardId}", null);
         }

@@ -23,9 +23,12 @@ namespace KanbanBackend
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowSpecificOrigin",
-                    builder => builder
-                        .WithOrigins("http://localhost:4200")
-                        .AllowAnyMethod()); 
+                                      policy =>
+                                      {
+                                          policy.WithOrigins("http://localhost:4200")
+                                                              .AllowAnyHeader()
+                                                              .AllowAnyMethod();
+                                      });
             });
 
             var app = builder.Build();
@@ -40,6 +43,7 @@ namespace KanbanBackend
             app.UseHttpsRedirection();
 
             app.UseCors("AllowSpecificOrigin");
+            
             app.UseAuthorization();
 
 
