@@ -13,6 +13,7 @@ namespace KanbanBackend
 
             CreateMap<Column, ColumnDto>();
             CreateMap<Column, SimpleColumnDto>();
+            CreateMap<Column, BoardColumnDto>();
 
             CreateMap<Task, TaskDto>();
             CreateMap<Task, TaskViewDto>()

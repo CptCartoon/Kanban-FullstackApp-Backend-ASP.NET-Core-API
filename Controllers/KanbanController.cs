@@ -72,6 +72,24 @@ namespace KanbanBackend.Controllers
         }
 
         [HttpGet]
+        [Route("GetColumnsByBoard/{id}")]
+        public ActionResult<IEnumerable<BoardColumnDto>> GetColumnsByBoard([FromRoute] int id)
+        {
+            var columns = _dbContext.Columns
+                .Where(c => c.BoardId == id)
+                .ToList();
+
+            var columnDto = _mapper.Map<List<BoardColumnDto>>(columns);
+
+            if (columns == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(columnDto);
+        }
+
+        [HttpGet]
         [Route("GetTaskViewById/{id}")]
         public ActionResult<IEnumerable<TaskViewDto>> GetTaskViewById([FromRoute] int id)
         {
