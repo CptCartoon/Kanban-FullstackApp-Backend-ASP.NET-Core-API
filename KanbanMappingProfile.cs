@@ -22,7 +22,10 @@ namespace KanbanBackend
 
             CreateMap<AddBoardDto, Board>()
                     .ForMember(dest => dest.Columns, opt => opt.Ignore());
+            CreateMap<EditBoardDto, Board>()
+                    .ForMember(dest => dest.Columns, opt => opt.Ignore());
             CreateMap<AddColumnDto, Column>();
+            CreateMap<EditColumnDto, Column>();
 
             CreateMap<AddTaskDto, Task>()
                     .ForMember(dest => dest.Subtasks, opt => opt.Ignore());

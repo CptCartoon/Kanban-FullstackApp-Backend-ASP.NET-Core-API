@@ -178,7 +178,7 @@ namespace KanbanBackend.Controllers
 
         [HttpPut]
         [Route("EditBoard/{id}")]
-        public ActionResult EditTask([FromRoute] int id, [FromBody] BoardDto dto)
+        public ActionResult EditTask([FromRoute] int id, [FromBody] EditBoardDto dto)
         {
             var board = _dbContext
                 .Boards
