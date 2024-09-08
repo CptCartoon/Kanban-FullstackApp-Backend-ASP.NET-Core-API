@@ -3,6 +3,7 @@ using KanbanBackend.Entities;
 using KanbanBackend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Threading.Tasks;
 using Task = KanbanBackend.Entities.Task;
 
@@ -134,19 +135,24 @@ namespace KanbanBackend.Controllers
         }
 
         [HttpPost]
-        [Route("AddColumn/{boardId}")]
-        public ActionResult AddColumn([FromBody] AddColumnDto dto, [FromRoute] int boardId)
+        [Route("AddColumns/{boardId}")]
+        public ActionResult AddColumns([FromBody] List<AddColumnDto> dto, [FromRoute] int boardId)
         {
 
-            var column = _mapper.Map<Column>(dto);
+       
 
-            column.BoardId = boardId;
+            foreach(var columnDto in dto)
+            {
+                var column = _mapper.Map<Column>(columnDto);
 
-            _dbContext.Columns.Add(column);
+                column.BoardId = boardId;
+
+                _dbContext.Columns.Add(column);
+            }
             _dbContext.SaveChanges();
 
 
-            return Created($"api/kanban/GetBoardById/{column.BoardId}", null);
+            return Created($"Created", null);
         }
 
         [HttpPost]
@@ -178,7 +184,7 @@ namespace KanbanBackend.Controllers
 
         [HttpPut]
         [Route("EditBoard/{id}")]
-        public ActionResult EditTask([FromRoute] int id, [FromBody] EditBoardDto dto)
+        public ActionResult EditBoard([FromRoute] int id, [FromBody] EditBoardDto dto)
         {
             var board = _dbContext
                 .Boards
@@ -189,39 +195,50 @@ namespace KanbanBackend.Controllers
 
             board.Name = dto.Name;
 
+            var existingColumns = board.Columns
+                    .ToList();
+
             var updatedColumns = dto.Columns
-                    .Select(c => c.Id)
                     .ToList();
 
             var columnsToRemove = board.Columns
-                    .Where(c => !updatedColumns.Contains(c.Id))
+                    .Where(c => !updatedColumns.Any(item => item.Id == c.Id))
                     .ToList();
+
+            var columnsToAdd = dto.Columns
+                    .Where(c => !existingColumns.Any(item => item.Id == c.Id))
+                    .ToList();
+
+            var columnsToEdit = dto.Columns
+                    .Where(c => existingColumns.Any(item => item.Id == c.Id))
+                    .ToList();
+
+
+            foreach (var columntEdit in columnsToEdit)
+            {
+                var existingColumn = board.Columns
+                    .FirstOrDefault(c => c.Id == columntEdit.Id);
+
+                if(existingColumn != null)
+                {
+                    existingColumn.Name = columntEdit.Name;
+                }
+            }
+
+            foreach (var columnAdd in columnsToAdd)
+            {   
+                    var newColumn = new Column
+                    {
+                        Name = columnAdd.Name,
+                        BoardId = id
+                    };
+                    board.Columns.Add(newColumn);
+            }
 
             foreach (var column in columnsToRemove)
             {
                 _dbContext.Columns.Remove(column);
             }
-
-            foreach (var columnDto in dto.Columns)
-            {
-                var existingColumn = board.Columns
-                    .FirstOrDefault(c => c.Id == columnDto.Id);
-
-                if (existingColumn != null)
-                {
-                    existingColumn.Name = columnDto.Name;
-                }
-                else
-                {
-                    var newColumn = new Column
-                    {
-                        Name = columnDto.Name,
-                        BoardId = board.Id
-                    };
-                    board.Columns.Add(newColumn);
-                }
-            }
-
 
             _dbContext.SaveChanges();
 
@@ -243,41 +260,48 @@ namespace KanbanBackend.Controllers
             task.Description = dto.Description;
             task.ColumnId = dto.ColumnId;
 
-            var updatedSubtasks = dto.Subtasks
-                    .Select(s => s.Id)
-                    .ToList();
+            var existingSubtasks = task.Subtasks.ToList();
+
+            var updatedSubtasks = dto.Subtasks.ToList();
 
             var subtasksToRemove = task.Subtasks
-                    .Where(s => !updatedSubtasks.Contains(s.Id))
+                    .Where(s => !updatedSubtasks.Any(item => item.Id == s.Id))
                     .ToList();
+
+            var subtasksToAdd = dto.Subtasks
+                    .Where(s => !existingSubtasks.Any(item => item.Id == s.Id))
+                    .ToList();
+
+            var subtasksToEdit = dto.Subtasks
+                    .Where(s => existingSubtasks.Any(item => item.Id == s.Id))
+                    .ToList();  
+
+            foreach ( var subtaskEdit in subtasksToEdit )
+            {
+                var existingSubtask = task.Subtasks.FirstOrDefault(s => s.Id == subtaskEdit.Id);
+
+                if (existingSubtask != null)
+                {
+                    existingSubtask.Title = subtaskEdit.Title;
+                }
+            }
+
+            foreach(var subtaskAdd in subtasksToAdd)
+            {
+                var newSubtask = new Subtask
+                {
+                    Title = subtaskAdd.Title,
+                    Completed = subtaskAdd.Completed,
+                    TaskId = task.Id,
+                };
+
+                task.Subtasks.Add(newSubtask);
+            }
 
             foreach (var subtask in subtasksToRemove)
             {
                 _dbContext.Subtasks.Remove(subtask);
             }
-
-            foreach (var subtaskDto in dto.Subtasks)
-            {
-                var existingSubtask = task.Subtasks
-                    .FirstOrDefault(s => s.Id == subtaskDto.Id);
-
-                if (existingSubtask != null)
-                {
-                    existingSubtask.Title = subtaskDto.Title;
-                    existingSubtask.Completed = subtaskDto.Completed;
-                }
-                else
-                {
-                    var newSubtask = new Subtask
-                    {
-                        Title = subtaskDto.Title,
-                        Completed = subtaskDto.Completed,
-                        TaskId = task.Id 
-                    };
-                    task.Subtasks.Add(newSubtask);
-                }
-            }
-
 
             _dbContext.SaveChanges();
 
