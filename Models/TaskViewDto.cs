@@ -7,6 +7,8 @@
         public string Description { get; set; }
         public List<SubtaskDto> Subtasks { get; set; }
         public List<SimpleColumnDto> Columns { get; set; }
+        public int TotalSubtasks { get; set; }
+        public int CompletedSubtasks { get; set; }
         public int ColumnId { get; set; }
     }
 }

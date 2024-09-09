@@ -62,12 +62,12 @@ namespace KanbanBackend.Controllers
                         .ThenInclude(t => t.Subtasks)
                 .FirstOrDefault(b => b.Id == id);
 
-            var boardDto = _mapper.Map<BoardDto>(board);
-
-            if (board == null)
+            if(board == null)
             {
                 return NotFound();
             }
+
+            var boardDto = _mapper.Map<BoardDto>(board);
 
             return Ok(boardDto);
         }
@@ -103,7 +103,7 @@ namespace KanbanBackend.Controllers
 
             var taskViewDto = _mapper.Map<TaskViewDto>(taskView);
 
-            taskViewDto.Columns = taskViewDto.Columns.OrderBy(c => c.Id).ToList();
+            // taskViewDto.Columns = taskViewDto.Columns.OrderBy(c => c.Id).ToList();
 
             if (taskView == null)
             {
