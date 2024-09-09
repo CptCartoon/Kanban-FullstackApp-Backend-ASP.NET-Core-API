@@ -103,6 +103,8 @@ namespace KanbanBackend.Controllers
 
             var taskViewDto = _mapper.Map<TaskViewDto>(taskView);
 
+            taskViewDto.Columns = taskViewDto.Columns.OrderBy(c => c.Id).ToList();
+
             if (taskView == null)
             {
                 return NotFound();
@@ -307,6 +309,43 @@ namespace KanbanBackend.Controllers
 
             return Ok();
          }
+
+        [HttpPatch]
+        [Route("ChangeTaskColumn/{id}")]
+        public ActionResult ChangeTaskColumn([FromRoute] int id, [FromBody] ChangeTaskColumnDto dto)
+        {
+            var task = _dbContext
+                .Tasks
+                .FirstOrDefault(s => s.Id == id);
+
+            if (task != null)
+            {
+                task.ColumnId = dto.ColumnId;
+            }
+
+            _dbContext.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpPatch]
+        [Route("ChangeSubtaskStatus/{id}")]
+        public ActionResult ChangeSubtaskStatus([FromRoute] int id, [FromBody] ChangeSubtaskStatus dto)
+        {
+            var subtask = _dbContext
+                .Subtasks
+                .FirstOrDefault(s => s.Id == id);
+
+            if (subtask != null)
+            {
+                subtask.Completed = dto.Completed;
+            }
+
+            _dbContext.SaveChanges();
+
+            return Ok();
+        }
+
 
         [HttpDelete]
         [Route("DeleteBoard/{id}")]
