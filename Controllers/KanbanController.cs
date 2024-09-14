@@ -28,6 +28,7 @@ namespace KanbanBackend.Controllers
         {
             var boards = _dbContext
                 .Boards
+                .Include(b => b.Columns)
                 .ToList();
 
             var simpleBoardsDto = _mapper.Map<List<SimpleBoardDto>>(boards);
@@ -102,8 +103,6 @@ namespace KanbanBackend.Controllers
                      .FirstOrDefault(t => t.Id == id);
 
             var taskViewDto = _mapper.Map<TaskViewDto>(taskView);
-
-            // taskViewDto.Columns = taskViewDto.Columns.OrderBy(c => c.Id).ToList();
 
             if (taskView == null)
             {

@@ -10,12 +10,14 @@ namespace KanbanBackend
     {
         public KanbanMappingProfile() {
             CreateMap<Board, BoardDto>();
-            CreateMap<Board, SimpleBoardDto>();
+            CreateMap<Board, SimpleBoardDto>()
+                     .ForMember(dest => dest.ColumnsCount, opt => opt.MapFrom(src => src.Columns.Count));
 
             CreateMap<Column, ColumnDto>()
                     .ForMember(dest => dest.TotalTasks, opt => opt.MapFrom(src => src.Tasks.Count()));
 
             CreateMap<Column, SimpleColumnDto>();
+                   
             CreateMap<Column, BoardColumnDto>();
 
             CreateMap<Task, TaskDto>();
