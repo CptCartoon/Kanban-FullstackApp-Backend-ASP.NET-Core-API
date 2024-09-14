@@ -59,7 +59,7 @@ namespace KanbanBackend.Controllers
             var board = _dbContext
                 .Boards
                 .Include(b => b.Columns)
-                    .ThenInclude(c => c.Tasks)
+                    .ThenInclude(c => c.Tasks.OrderBy(t => t.OrderIndex))
                         .ThenInclude(t => t.Subtasks)
                 .FirstOrDefault(b => b.Id == id);
 
@@ -160,10 +160,14 @@ namespace KanbanBackend.Controllers
         [Route("AddTask/{columnId}")]
         public ActionResult AddBoard([FromBody] AddTaskDto dto, [FromRoute] int columnId)
         {
+            var tasksInColumn = _dbContext.Tasks
+                .Where(t => t.ColumnId == columnId)
+                .Count();
 
             var task = _mapper.Map<Task>(dto);
 
             task.ColumnId = columnId;
+            task.OrderIndex = tasksInColumn + 1;
 
             _dbContext.Tasks.Add(task);
             _dbContext.SaveChanges();
@@ -313,13 +317,58 @@ namespace KanbanBackend.Controllers
         [Route("ChangeTaskColumn/{id}")]
         public ActionResult ChangeTaskColumn([FromRoute] int id, [FromBody] ChangeTaskColumnDto dto)
         {
-            var task = _dbContext
+            var changedTask = _dbContext
                 .Tasks
                 .FirstOrDefault(s => s.Id == id);
 
-            if (task != null)
+            var tasksInOldColumn = _dbContext
+                .Tasks
+                .Where(t => t.ColumnId == changedTask.ColumnId)
+                .ToList();
+
+            var tasksInNewColumn = _dbContext
+                .Tasks
+                .Where(t => t.ColumnId == dto.ColumnId)
+                .ToList();
+
+
+
+            if (changedTask != null)
             {
-                task.ColumnId = dto.ColumnId;
+                if (changedTask.ColumnId == dto.ColumnId)
+                {
+                    if (changedTask.OrderIndex > dto.OrderIndex)
+                    {
+                        foreach (var task in tasksInOldColumn.Where(t => t.OrderIndex >= dto.OrderIndex && t.OrderIndex < changedTask.OrderIndex))
+                        {
+                            task.OrderIndex++;
+                        }
+                    }
+                    else if (changedTask.OrderIndex < dto.OrderIndex)
+                    {
+                        foreach (var task in tasksInOldColumn.Where(t => t.OrderIndex > changedTask.OrderIndex && t.OrderIndex <= dto.OrderIndex))
+                        {
+                            task.OrderIndex--;
+                        }
+                    }
+
+                    changedTask.OrderIndex = dto.OrderIndex;
+                }
+                else
+                {
+                    foreach (var task in tasksInOldColumn.Where(t => t.OrderIndex > changedTask.OrderIndex))
+                    {
+                        task.OrderIndex--;
+                    }
+
+                    foreach (var task in tasksInNewColumn.Where(t => t.OrderIndex >= dto.OrderIndex))
+                    {
+                        task.OrderIndex++;
+                    }
+
+                    changedTask.ColumnId = dto.ColumnId;
+                    changedTask.OrderIndex = dto.OrderIndex;
+                }
             }
 
             _dbContext.SaveChanges();
