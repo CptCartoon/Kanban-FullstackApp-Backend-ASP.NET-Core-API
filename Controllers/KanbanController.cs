@@ -331,7 +331,10 @@ namespace KanbanBackend.Controllers
                 .Where(t => t.ColumnId == dto.ColumnId)
                 .ToList();
 
-
+            if (dto.OrderIndex == 0)
+            {
+                dto.OrderIndex = tasksInNewColumn.Count + 1;
+            }
 
             if (changedTask != null)
             {

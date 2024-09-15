@@ -43,7 +43,8 @@ namespace KanbanBackend.Entities
                       .HasMaxLength(100);
 
                 entity.Property(t => t.Description)
-                      .HasMaxLength(2000);
+                      .HasMaxLength(2000)
+                      .HasDefaultValue("");
 
                 entity.HasMany(t => t.Subtasks)
                       .WithOne(s => s.Task)
