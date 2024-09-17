@@ -424,9 +424,26 @@ namespace KanbanBackend.Controllers
                 .Tasks
                 .FirstOrDefault(t => t.Id == id);
 
+ 
+
             if (task == null) return NotFound();
 
-            _dbContext.Tasks.Remove(task);
+            if (task != null)
+            {
+                var tasksInColumn = _dbContext
+                    .Tasks
+                    .Where(t => t.ColumnId == task.ColumnId && t.OrderIndex > task.OrderIndex)
+                    .ToList();
+
+                foreach (var taskColumn in tasksInColumn)
+                {
+                    taskColumn.OrderIndex--;
+                }
+
+                _dbContext.Tasks.Remove(task);
+            }
+
+         
             _dbContext.SaveChanges();
 
             return NoContent();
