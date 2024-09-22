@@ -1,3 +1,3 @@
 ## WARNING
 
-This is backend for [Kanban Project](https://github.com/CptCartoon/Kanban-FullstackApp-Angular-JavaSpring) which was orignally started in Java Spring
+This is ASP.NET Core 8 backend for [Kanban Project](https://github.com/CptCartoon/Kanban-FullstackApp) which was orignally started in Java Spring.
